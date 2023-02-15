@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\Accounts\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Amazon.AspNetCore.Identity.Cognito" Version="3.0.1" />
     <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.3.0" />
   </ItemGroup>

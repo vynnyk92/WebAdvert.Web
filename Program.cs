@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+
 namespace WebAdvert.Web
 {
     public class Program
@@ -7,6 +9,18 @@ namespace WebAdvert.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddCognitoIdentity(c =>
+            {
+                c.Password = new PasswordOptions()
+                {
+                    RequiredLength = 6,
+                    RequireDigit = false,
+                    RequireLowercase = false,
+                    RequireNonAlphanumeric = false,
+                    RequireUppercase = false,
+                    RequiredUniqueChars = 0
+                };
+            });
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -26,6 +40,7 @@ namespace WebAdvert.Web
 
             app.UseAuthorization();
 
+            app.UseAuthentication();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
