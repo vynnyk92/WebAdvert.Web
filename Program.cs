@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace WebAdvert.Web
 {
@@ -22,9 +23,11 @@ namespace WebAdvert.Web
                 };
             });
 
-            builder.Services.ConfigureApplicationCookie(opt =>
+            builder.Services.ConfigureApplicationCookie(options =>
             {
-                opt.LoginPath = "/accounts/login";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                options.LoginPath = "/Accounts/Login";
+                options.SlidingExpiration = true;
             });
             builder.Services.AddControllersWithViews();
 
@@ -43,10 +46,9 @@ namespace WebAdvert.Web
 
             app.UseRouting();
 
-            app.UseAuthorization();
-            app.UseCookiePolicy();
-
+           
             app.UseAuthentication();
+            app.UseAuthorization();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
