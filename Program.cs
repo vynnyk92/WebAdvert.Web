@@ -21,6 +21,11 @@ namespace WebAdvert.Web
                     RequiredUniqueChars = 0
                 };
             });
+
+            builder.Services.ConfigureApplicationCookie(opt =>
+            {
+                opt.LoginPath = "/accounts/login";
+            });
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -39,6 +44,7 @@ namespace WebAdvert.Web
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseCookiePolicy();
 
             app.UseAuthentication();
             app.MapControllerRoute(
