@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Amazon.AspNetCore.Identity.Cognito" Version="3.0.1" />
     <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.3.0" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.103.14" />
   </ItemGroup>
 
 </Project>

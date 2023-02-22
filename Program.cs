@@ -1,5 +1,8 @@
+using Amazon.Runtime.SharedInterfaces;
+using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using WebAdvert.Web.Services;
 
 namespace WebAdvert.Web
 {
@@ -10,6 +13,8 @@ namespace WebAdvert.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddAWSService<IAmazonS3>();
+            builder.Services.AddTransient<IFileUploader, S3FileUploader>();
             builder.Services.AddCognitoIdentity(c =>
             {
                 c.Password = new PasswordOptions()
