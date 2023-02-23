@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WebAdvert.Models;
 using WebAdvert.Web.Models.AdvertManagement;
+using WebAdvert.Web.ServiceClients;
 using WebAdvert.Web.Services;
 
 namespace WebAdvert.Web.Controllers
@@ -7,10 +9,12 @@ namespace WebAdvert.Web.Controllers
     public class AdvertManagementController : Controller
     {
         private readonly IFileUploader _fileUploader;
+        private readonly IAdvertApiClient _advertApiClient;
 
-        public AdvertManagementController(IFileUploader fileUploader)
+        public AdvertManagementController(IFileUploader fileUploader, IAdvertApiClient advertApiClient)
         {
             _fileUploader = fileUploader;
+            _advertApiClient = advertApiClient;
         }
 
         [HttpGet]
@@ -22,7 +26,15 @@ namespace WebAdvert.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var id = "xx"; //get id
+
+                var advertModel = new AdvertModel
+                {
+                    Title = createAdvertViewModel.Title,
+                    Description = createAdvertViewModel.Description,
+                    Price = createAdvertViewModel.Price
+                };
+                var advertResponse = await _advertApiClient.CreateAdvert(advertModel);
+                var id = advertResponse.Id;
                 var fileName = string.Empty;
                 if (imageFile is not null)
                 {
@@ -40,16 +52,29 @@ namespace WebAdvert.Web.Controllers
                             if (!result)
                                 throw new Exception("Can't upload image");
 
-                            //confirm
+                            var confirmAdvertModel = new ConfirmAdvertModel
+                            {
+                                Id = id,
+                                FilePath = filePath,
+                                Status = AdvertStatus.Active
+                            };
+                            var confirm = await _advertApiClient.ConfirmAdvert(confirmAdvertModel);
 
-                            return RedirectToAction("Index","Home");
+                            if (confirm)
+                                return RedirectToAction("Index", "Home");
+                            else
+                                throw new ApplicationException("Confirmation failed");
                         }
                     }
                     catch (Exception e)
                     {
-                        //revert saga
-                        Console.WriteLine(e);
-
+                        var confirmAdvertModel = new ConfirmAdvertModel
+                        {
+                            Id = id,
+                            FilePath = filePath,
+                            Status = AdvertStatus.Pending
+                        };
+                        await _advertApiClient.ConfirmAdvert(confirmAdvertModel);
                     }
 
                 }

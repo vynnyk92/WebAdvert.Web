@@ -1,8 +1,13 @@
+using System.Net;
 using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Extensions.Http;
+using WebAdvert.Web.ServiceClients;
 using WebAdvert.Web.Services;
+using WebAdvert.Web.Settings;
 
 namespace WebAdvert.Web
 {
@@ -11,6 +16,10 @@ namespace WebAdvert.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            //Configs
+            builder.Services.Configure<AdvertApi>(
+                builder.Configuration.GetSection(nameof(AdvertApi)));
 
             // Add services to the container.
             builder.Services.AddAWSService<IAmazonS3>();
@@ -36,6 +45,10 @@ namespace WebAdvert.Web
             });
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddHttpClient<IAdvertApiClient, AdvertApiClient>()
+                .AddPolicyHandler(GetBackOffRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -59,6 +72,25 @@ namespace WebAdvert.Web
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.Run();
+        }
+
+        private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+        {
+            return HttpPolicyExtensions.HandleTransientHttpError()
+                .CircuitBreakerAsync(3, TimeSpan.FromSeconds(60))
+               ;
+        }
+
+        private static IAsyncPolicy<HttpResponseMessage> GetBackOffRetryPolicy()
+        {
+            return HttpPolicyExtensions.HandleTransientHttpError()
+                .OrResult(response => response.StatusCode == HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(5, retryAttempt =>
+                {
+                    Console.WriteLine();
+                    return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                });
+
         }
     }
 }
