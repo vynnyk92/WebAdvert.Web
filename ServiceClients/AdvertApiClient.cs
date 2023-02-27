@@ -1,5 +1,6 @@
 ﻿
 using System.Net;
+using System.Text;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WebAdvert.Models;
@@ -18,14 +19,13 @@ namespace WebAdvert.Web.ServiceClients
             _advertApi = options.Value;
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(_advertApi.BaseUrl);
-            _httpClient.DefaultRequestHeaders.Add("Content-type", "application/json");
         }
 
         public async Task<AdvertResponse> CreateAdvert(AdvertModel advertModel)
         {
             var requestBody = JsonConvert.SerializeObject(advertModel);
             var requestUri = new Uri($"{_httpClient.BaseAddress}/create");
-            var response = await _httpClient.PostAsync(requestUri, new StringContent(requestBody));
+            var response = await _httpClient.PostAsync(requestUri, new StringContent(requestBody, Encoding.UTF8, "application/json"));
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var body = await response.Content.ReadAsStringAsync();
@@ -40,7 +40,7 @@ namespace WebAdvert.Web.ServiceClients
         {
             var requestUri = new Uri($"{_httpClient.BaseAddress}/confirm");
             var requestBody = JsonConvert.SerializeObject(confirmAdvertModel);
-            var response = await _httpClient.PutAsync(requestUri, new StringContent(requestBody));
+            var response = await _httpClient.PutAsync(requestUri, new StringContent(requestBody, Encoding.UTF8, "application/json"));
             return response.StatusCode == HttpStatusCode.OK;
         }
     }

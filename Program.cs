@@ -85,7 +85,7 @@ namespace WebAdvert.Web
         {
             return HttpPolicyExtensions.HandleTransientHttpError()
                 .OrResult(response => response.StatusCode == HttpStatusCode.NotFound)
-                .WaitAndRetryAsync(5, retryAttempt =>
+                .WaitAndRetryAsync(2, retryAttempt =>
                 {
                     Console.WriteLine();
                     return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
